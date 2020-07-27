@@ -11,8 +11,9 @@ const multer = require('multer');
 const log = (m) => {
     process.env.LOG_ENABLED && console.log(m);
 }
+
 const logError = (m) => {
-    log(`ERROR: ${m}`);
+    log('ERROR!', m);
 }
 
 const initPrinter = () => {
@@ -34,6 +35,13 @@ const initPrinter = () => {
 
 const printImage = (printer, url) => {
     return new Promise((resolve, reject) => {
+        if (!(image instanceof escpos.Image)) {
+            const e = 'Couldnt convert the supplied image blob to escpos.Image';
+            logError(e, image);
+            reject(e);
+            return;
+        }
+
         escpos.Image.load(url, async (image) => {
             try {
                 await printer.image(image);

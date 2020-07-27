@@ -1,0 +1,181 @@
+* {
+    box-sizing: border-box;
+    font-family: sans-serif;
+}
+
+html, body {
+    padding: 0;
+    margin: 0;
+    height: 100%;
+    min-width: 228px;
+}
+
+.container {
+    height: 100%;
+    display: flex;
+    flex-flow: row;
+    padding: 20px;
+}
+
+.preview {
+    height: 100%;
+    overflow: auto;
+    border: 4px dashed gray;
+    max-width: 392px;
+    margin-left: 20px;
+}
+
+.preview::-webkit-scrollbar {
+    display: none;
+}
+
+#previewWrap {
+    overflow: hidden;
+    max-height: 100%;
+    position: relative;
+}
+
+#previewCanvas {
+    width: 100%;
+}
+
+#previewCursor,
+#previewHeight {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    pointer-events: none;
+}
+
+#previewHeight {
+    background: rgba(255, 0, 0, 0.8);
+}
+
+#previewCursor {
+    background: rgba(255, 0, 0, 0.3);
+}
+
+.controls {
+    flex-grow: 2;
+}
+
+.fill {
+    flex-grow: 1;
+}
+
+.row {
+    display: flex;
+    flex-flow: row;
+}
+
+.mb8 {
+    margin: 0 0 8px 0;
+}
+
+.mb20 {
+    margin: 0 0 20px 0;
+}
+
+.btn {
+    min-width: 80px;
+    text-align: center;
+    padding: 10px;
+    opacity: 0.8;
+    color: #fff;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.blue {
+    background: #2980b9;
+}
+
+.red {
+    background: #c0392b;
+}
+
+.yellow {
+    background: #f39c12
+}
+
+.green {
+    background: #27ae60;
+}
+
+.purple {
+    background: #8e44ad;
+}
+
+.teal {
+    background: #16a085;
+}
+
+.btn:hover {
+    cursor: pointer;
+    opacity: 1;
+}
+
+.controls input {
+    margin: 8px 8px 8px 0;
+    font-size: 14px;
+    display: block;
+}
+
+#fontBox {
+    width: 120px;
+}
+
+#sizeBox,
+#marginBox {
+    width: 60px;
+}
+
+.btn.action {
+    width: 188px;
+}
+
+#textBox {
+    width: 100%;
+    max-width: 400px;
+    height: 100px;
+    font-size: 14px;
+}
+
+#imageBox {
+    margin: 8px 0;
+}
+
+#dithAlgo {
+    margin-bottom: 8px;
+    padding: 2px;
+}
+
+.controls .main > * {
+    margin-right: 8px;
+}
+
+@media screen and (max-width: 767px) {
+    .container {
+        display: block;
+    }
+
+    .preview {
+        height: auto;
+        margin-left: 0;
+        margin-bottom: 20px;
+    }
+
+    #previewWrap {
+        max-height: 392px;
+    }
+
+}
+
+.hide {
+    display: none !important;
+}
+
+.draw {
+    cursor: crosshair;
+}

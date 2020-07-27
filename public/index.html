@@ -4,10 +4,73 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Receipt, Please!</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <canvas id="canvas"></canvas>
+    <div class="container">
 
-    <script src="main.js"></script>
+        <div class="fill"></div>
+
+        <div class="controls">
+            <div class="row mb20 main">
+                <div id="printBtn" class="btn blue">Print</div>
+                <div id="clearBtn" class="btn red">Clear</div>
+            </div>
+
+            <div class="mb20 addText">
+                <textarea id="textBox"></textarea>
+                <div class="row">
+                    <input id="fontBox" type="text" value="Arial" />
+                    <input id="sizeBox" type="text" value="28" />
+                </div>
+                <div id="textBtn" class="btn purple action mb8">Add text</div>
+                <div id="listBtn" class="btn purple action">Add list item</div>
+            </div>
+
+            <div class="mb20 addMargin">
+                <input id="marginBox" type="text" value="20" />
+                <div id="marginBtn" class="btn purple action">Add margin</div>
+            </div>
+
+            <div class="mb20 addImage">
+                <input id="imageBox" type="file" />
+                <select id="dithAlgo">
+                    <option>FloydSteinberg</option>
+                    <option>FalseFloydSteinberg</option>
+                    <option>Stucki</option>
+                    <option>Atkinson</option>
+                    <option>Jarvis</option>
+                    <option>Burkes</option>
+                    <option>Sierra</option>
+                    <option>TwoSierra</option>
+                    <option>SierraLite</option>
+                </select>
+                <div id="imageBtn" class="btn purple action">Add image</div>
+            </div>
+
+            <div class="mb20 addDrawing">
+                <div id="drawStartBtn" class="btn purple action">Start drawing</div>
+                <div id="drawEndBtn" class="btn teal action hide">Stop drawing</div>
+
+                <div id="drawActions" class="row hide">
+                    <!-- ... -->
+                </div>
+            </div>
+        </div>
+
+        <div class="preview">
+            <div id="previewWrap">
+                <canvas id="previewCanvas" width="384" height="5000"></canvas>
+                <div id="previewHeight"></div>
+                <div id="previewCursor"></div>
+            </div>
+        </div>
+        
+        <div class="fill"></div>
+
+    </div>
+
+    <script type="text/javascript" src="rgbquant.js"></script>
+    <script type="text/javascript" src="main.js"></script>
 </body>
 </html>
