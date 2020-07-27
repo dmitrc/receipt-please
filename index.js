@@ -13,7 +13,7 @@ const log = (m) => {
 }
 
 const logError = (m) => {
-    log('ERROR!', m);
+    log('ERROR: ' + m);
 }
 
 const initPrinter = () => {
@@ -35,14 +35,14 @@ const initPrinter = () => {
 
 const printImage = (printer, url) => {
     return new Promise((resolve, reject) => {
-        if (!(image instanceof escpos.Image)) {
-            const e = 'Couldnt convert the supplied image blob to escpos.Image';
-            logError(e, image);
-            reject(e);
-            return;
-        }
-
         escpos.Image.load(url, async (image) => {
+            if (!(image instanceof escpos.Image)) {
+                const e = 'Couldnt convert the supplied image blob to escpos.Image';
+                logError(e);
+                reject(e);
+                return;
+            }
+    
             try {
                 await printer.image(image);
                 printer.cut().close();
@@ -64,7 +64,7 @@ const handlePrint = async (req, res) => {
     }
 
     if (!process.env.USB_ENABLED) {
-        log('Skipped print!')
+        log('Skipped print')
         res.send('Skipped');
         return;
     }
@@ -73,7 +73,7 @@ const handlePrint = async (req, res) => {
         const printer = await initPrinter();
         await printImage(printer, req.file.path);
         
-        log('Printed successfully!');
+        log('Completed print');
         res.send('OK');
     }
     catch (err) {
