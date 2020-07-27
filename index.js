@@ -70,11 +70,26 @@ const handlePrint = async (req, res) => {
 };
 
 const app = express();
-const upload = multer({ dest: __dirname + '/uploads' });
 
 app.use(compression());
 app.use(cors());
 app.use(express.static(__dirname + '/public'));
+
+const upload = multer({ 
+    fileFilter: (req, file, cb) => {
+        cb(null, file && file.mimetype == "image/png");
+    },
+    storage: multer.diskStorage({
+        destination: (req, file, cb) => {
+            cb(null, __dirname + '/uploads');
+        },
+        filename: (req, file, cb) => {
+            const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+            cb(null, uniqueSuffix + '.png');
+        }
+    })
+});
+
 
 app.post('/print', upload.single('blob'), handlePrint);
 
