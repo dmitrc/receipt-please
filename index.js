@@ -8,14 +8,28 @@ const compression = require('compression');
 const cors = require('cors');
 const multer = require('multer');
 
+const enableLog = true;
+const log = (m) => {
+    enableLog && console.log(m);
+}
+const logError = (m) => {
+    log(`ERROR: ${m}`);
+}
+
 const initPrinter = () => {
     return new Promise((resolve, reject) => {
         const device = new escpos.USB(process.env.USB_VID, process.env.USB_PID);
         const printer = new escpos.Printer(device);
 
         device.open(err => {
-            !!err ? reject(err) : resolve(printer);
-        })
+           if (err) {
+               logError(err);
+               reject(err);
+           }
+           else {
+               resolve(printer);
+           }
+        });
     });
 };
 
@@ -28,6 +42,7 @@ const printImage = (printer, url) => {
                 resolve();
             }
             catch (err) {
+                logError(err);
                 reject(err);
             }
         });
@@ -36,6 +51,7 @@ const printImage = (printer, url) => {
 
 const handlePrint = async (req, res) => {
     if (!req.file) {
+        logError('No blob attached');
         res.status(400).send('No blob attached');
         return;
     }
@@ -44,9 +60,11 @@ const handlePrint = async (req, res) => {
         const printer = await initPrinter();
         await printImage(printer, req.file.path);
         
+        log('Printed successfully');
         res.send('OK');
     }
     catch (err) {
+        logError(err);
         res.status(500).send(err);
     }
 };
@@ -61,5 +79,5 @@ app.use(express.static(__dirname + '/public'));
 app.post('/print', upload.single('blob'), handlePrint);
 
 app.listen(process.env.PORT, () => {
-    console.log(`Listening at port ${process.env.PORT}...`)
+    log(`Listening at port ${process.env.PORT}...`);
 });
