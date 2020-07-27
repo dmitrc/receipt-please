@@ -8,9 +8,8 @@ const compression = require('compression');
 const cors = require('cors');
 const multer = require('multer');
 
-const enableLog = true;
 const log = (m) => {
-    enableLog && console.log(m);
+    process.env.LOG_ENABLED && console.log(m);
 }
 const logError = (m) => {
     log(`ERROR: ${m}`);
@@ -56,11 +55,17 @@ const handlePrint = async (req, res) => {
         return;
     }
 
+    if (!process.env.USB_ENABLED) {
+        log('Skipped print!')
+        res.send('Skipped');
+        return;
+    }
+
     try {
         const printer = await initPrinter();
         await printImage(printer, req.file.path);
         
-        log('Printed successfully');
+        log('Printed successfully!');
         res.send('OK');
     }
     catch (err) {
