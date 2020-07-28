@@ -32,10 +32,19 @@ const dithAlgo = $('#dithAlgo');
 const imageBtn = $('#imageBtn');
 const drawStartBtn = $('#drawStartBtn');
 const drawEndBtn = $('#drawEndBtn');
+const brushBox = $('#brushBox');
 
 const ctx = canvas.getContext('2d');
 canvas.width = maxW;
 canvas.height = maxH;
+
+/* Misc helpers */
+
+function def(x, d) {
+    return typeof(x) == 'undefined' ? d : x;
+}
+
+/* State helpers */
 
 function setCurrentHeight(y, force = false) {
     y = Math.max(y, 0);
@@ -63,9 +72,7 @@ function updateCursors() {
     canvasWrapper.style.maxHeight = `${wrapperHeight}px`;
 }
 
-function def(x, d) {
-    return typeof(x) == 'undefined' ? d : x;
-}
+/* Render helpers */
 
 function renderText(text, settings) {
     settings = settings || {};
@@ -217,6 +224,76 @@ function renderListItem(text, settings) {
     return newH;
 }
 
+/* Draw mode helpers */
+
+function startDraw(x, y) {
+    if (isDrawingMode) {
+        const canvas = {
+            x: preview.offsetLeft,
+            y: preview.offsetTop - preview.scrollTop
+        };
+
+        lastMouse.x = mouse.x = parseInt(x - canvas.x);
+	    lastMouse.y = mouse.y = parseInt(y - canvas.y);
+        isDrawing = true
+    }
+}
+
+function endDraw() {
+    if (isDrawingMode) {
+        isDrawing = false;
+    }
+}
+
+function moveDraw(x, y) {
+    const c = {
+        x: preview.offsetLeft,
+        y: preview.offsetTop - preview.scrollTop,
+        scale: canvas.width / canvasWrapper.clientWidth
+    };
+
+    mouse.x = parseInt(x - c.x);
+    mouse.y = parseInt(y - c.y);
+
+    if (isDrawingMode && isDrawing) {
+        let lineWidth = parseInt(brushBox.value);
+        if (isNaN(lineWidth)) {
+            lineWidth = 2;
+        }
+
+        ctx.strokeStyle = 'black';
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.lineWidth = lineWidth;
+
+        const scaledLastMouse = { 
+            x: lastMouse.x * c.scale,
+            y: lastMouse.y * c.scale
+        };
+
+        const scaledMouse = { 
+            x: mouse.x * c.scale,
+            y: mouse.y * c.scale
+        };
+
+        ctx.beginPath();
+        ctx.moveTo(scaledLastMouse.x, scaledLastMouse.y);
+        ctx.lineTo(scaledMouse.x, scaledMouse.y);
+        ctx.closePath();
+        ctx.stroke();
+
+        const halfLineWidth = Math.ceil(lineWidth / 2);
+        if (scaledMouse.y + halfLineWidth > curH) {
+            setCurrentHeight(scaledMouse.y + halfLineWidth);
+        }
+
+        lastMouse.x = mouse.x;
+        lastMouse.y = mouse.y;
+    }
+}
+
+/* Canvas primary actions */
+
 function print(trimH = curH) {
     const exportData = ctx.getImageData(0, 0, maxW, trimH);
 
@@ -253,6 +330,8 @@ function clear() {
         setCurrentHeight(0, true);
     }
 }
+
+/* Button handlers */
 
 function addText() {
     const text = textBox.value;
@@ -315,7 +394,6 @@ function addImage() {
 
 function enableDraw() {
     isDrawingMode = true;
-
     canvas.classList.add('draw');
     drawStartBtn.classList.add('hide');
     drawEndBtn.classList.remove('hide');
@@ -323,83 +401,35 @@ function enableDraw() {
 
 function disableDraw() {
     isDrawingMode = false;
-
     canvas.classList.remove('draw');
     drawEndBtn.classList.add('hide');
     drawStartBtn.classList.remove('hide');
 }
 
-function startDraw(x, y) {
-    if (isDrawingMode) {
-        const canvas = {
-            x: preview.offsetLeft,
-            y: preview.offsetTop - preview.scrollTop
-        };
+/* Section handlers */
 
-        const touch = e.targetTouches[0];
-
-        lastMouse.x = mouse.x = parseInt(x-canvas.x);
-	    lastMouse.y = mouse.y = parseInt(y-canvas.y);
-        isDrawing = true
-    }
+function toggleSection(button) {
+    const section = button.parentElement;
+    section.classList.toggle('expanded');
 }
 
-function endDraw() {
-    if (isDrawingMode) {
-        isDrawing = false;
-    }
-}
-
-function moveDraw(x, y) {
-    const c = {
-        x: preview.offsetLeft,
-        y: preview.offsetTop - preview.scrollTop,
-        scale: canvas.width / canvasWrapper.clientWidth
-    };
-
-    mouse.x = parseInt(x - c.x);
-    mouse.y = parseInt(y - c.y);
-
-    if (isDrawingMode && isDrawing) {
-        ctx.strokeStyle = 'black';
-        ctx.lineWidth = 2;
-
-        const scaledLastMouse = { 
-            x: lastMouse.x * c.scale,
-            y: lastMouse.y * c.scale
-        };
-
-        const scaledMouse = { 
-            x: mouse.x * c.scale,
-            y: mouse.y * c.scale
-        };
-
-        ctx.beginPath();
-        ctx.moveTo(scaledLastMouse.x, scaledLastMouse.y);
-        ctx.lineTo(scaledMouse.x, scaledMouse.y);
-        ctx.closePath();
-        ctx.stroke();
-
-        if (scaledMouse.y > curH) {
-            setCurrentHeight(scaledMouse.y + 2);
-        }
-
-        lastMouse.x = mouse.x;
-        lastMouse.y = mouse.y;
-    }
-}
+/* Setup */
 
 function addHandlers() {
-    window.onresize = updateCursors;
+    window.onresize = () => updateCursors();
 
-    printBtn.onclick = print;
-    clearBtn.onclick = clear;
-    textBtn.onclick = addText;
-    listBtn.onclick = addList;
-    marginBtn.onclick = addMargin;
-    imageBtn.onclick = addImage;
-    drawStartBtn.onclick = enableDraw;
-    drawEndBtn.onclick = disableDraw;
+    printBtn.onclick = () => print();
+    clearBtn.onclick = () => clear();
+    textBtn.onclick = () => addText();
+    marginBtn.onclick = () => addMargin();
+    imageBtn.onclick = () => addImage();
+    drawStartBtn.onclick = () => enableDraw();
+    drawEndBtn.onclick = () => disableDraw();
+
+    const sectionButtons = $$('.section-btn');
+    for (const button of sectionButtons) {
+        button.onclick = () => toggleSection(button);
+    }
 
     canvas.onmousedown = (e) => {
         startDraw(e.pageX, e.pageY);
@@ -410,9 +440,9 @@ function addHandlers() {
         startDraw(touch.pageX, touch.pageY);
     }
     
-    canvas.onmouseup = endDraw;
-    canvas.ontouchend = endDraw;
-    canvas.ontouchcancel = endDraw;
+    canvas.onmouseup = () => endDraw();
+    canvas.ontouchend = () => endDraw();
+    canvas.ontouchcancel = () => endDraw();
     
     canvas.onmousemove = (e) => {
         moveDraw(e.pageX, e.pageY);

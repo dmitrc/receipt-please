@@ -1,4 +1,4 @@
-require('dotenv').config();
+const config = require('./config');
 
 const escpos = require('escpos');
 escpos.USB = require('escpos-usb');
@@ -9,7 +9,7 @@ const cors = require('cors');
 const multer = require('multer');
 
 const log = (m) => {
-    process.env.LOG_ENABLED && console.log(m);
+    config.enableLogs && console.log(m);
 }
 
 const logError = (m) => {
@@ -18,7 +18,7 @@ const logError = (m) => {
 
 const initPrinter = () => {
     return new Promise((resolve, reject) => {
-        const device = new escpos.USB(process.env.USB_VID, process.env.USB_PID);
+        const device = new escpos.USB(config.usbVendorId, config.usbProductId);
         const printer = new escpos.Printer(device);
 
         device.open(err => {
@@ -63,7 +63,7 @@ const handlePrint = async (req, res) => {
         return;
     }
 
-    if (!process.env.USB_ENABLED) {
+    if (!config.enableUsb) {
         log('Skipped print')
         res.send('Skipped');
         return;
@@ -106,6 +106,6 @@ const upload = multer({
 
 app.post('/print', upload.single('blob'), handlePrint);
 
-app.listen(process.env.PORT, () => {
-    log(`Listening at port ${process.env.PORT}...`);
+app.listen(config.port, () => {
+    log(`Listening at port ${config.port}...`);
 });
