@@ -13,6 +13,7 @@ let isDrawingMode = false;
 let isDrawing = false;
 let mouse = { x: 0, y: 0 };
 let lastMouse = { x: 0, y: 0};
+let tableColumns = 0;
 
 const preview = $('.preview');
 const canvasWrapper = $('#previewWrap');
@@ -35,6 +36,12 @@ const imageBtn = $('#imageBtn');
 const drawStartBtn = $('#drawStartBtn');
 const drawEndBtn = $('#drawEndBtn');
 const brushBox = $('#brushBox');
+const tableColumnBox = $('#tableColumnBox');
+const tableStartBtn = $('#tableStartBtn');
+const tableColumnWidths = $('#tableColumnWidths');
+const tableRows = $('#tableRows');
+const tableRowBtn = $('#tableRowBtn');
+const tableEndBtn = $('#tableEndBtn');
 
 const ctx = canvas.getContext('2d');
 canvas.width = maxW;
@@ -267,7 +274,7 @@ function renderListItem(text, settings) {
     const iconSize = def(settings.iconSize, 32);
     const lineHeightRatio = def(settings.lineHeightRatio, 1.2);
     const useSpace = def(settings.useSpace, true);
-    const updateHeight = def(settings.updateHeight, true)
+    const updateHeight = def(settings.updateHeight, true);
 
     const h1 = renderText('☐', {
         fontName: 'Arial',
@@ -295,6 +302,92 @@ function renderListItem(text, settings) {
     newH += 9;
     updateHeight && setCurrentHeight(newH);
     return newH;
+}
+
+function renderLine(fromX, fromY, toX, toY, w) {
+    ctx.lineWidth = w;
+    ctx.strokeStyle = 'black';
+
+    ctx.beginPath();
+    ctx.moveTo(fromX, fromY);
+    ctx.lineTo(toX, toY);
+    ctx.closePath();
+    ctx.stroke();
+}
+
+function renderTable(rows, widths, settings) {
+    if (!rows || rows.length == 0 || !widths || widths.length == 0) {
+        return;
+    }
+
+    settings = settings || {};
+
+    const y = def(settings.y, curY);
+    const fontName = def(settings.fontName, 'Arial');
+    const fontSize = def(settings.fontSize, 28);
+    const lineHeightRatio = def(settings.lineHeightRatio, 1.2);
+    const useSpace = def(settings.useSpace, true);
+    const updateHeight = def(settings.updateHeight, true);
+    const lineWidth = def(settings.lineWidth, 2);
+    const marginWidth = def(settings.marginWidth, 2);
+
+    ctx.lineWidth = lineWidth;
+    ctx.strokeStyle = 'black';
+
+    const halfLineWidth = Math.ceil(lineWidth / 2);
+
+    let tmpX = 0;
+    let tmpY = y;
+    let nextY = y;
+
+    for (let i = 0; i < rows.length; ++i) {
+        if (i == 0) {
+            renderLine(0, tmpY + halfLineWidth, maxW, tmpY + halfLineWidth, lineWidth);
+        }
+
+        const cols = rows[i].length;
+        const colMarginW = marginWidth * 2;
+
+        for (let j = 0; j < cols; ++j) {
+            const colW = widths[j];
+            const colLineW = Math.ceil(lineWidth * ((j == 0 || j == cols.length - 1) ? 2 : 1)); 
+            const colInternalW = colW - colLineW - colMarginW;
+
+            const text = rows[i][j];
+            const textY = renderText(text, {
+                x: tmpX + Math.ceil((colW - colInternalW) / 2),
+                y: tmpY,
+                w: colInternalW,
+                fontName: fontName,
+                fontSize: fontSize,
+                lineHeightRatio : lineHeightRatio,
+                useSpace: useSpace,
+                updateHeight: false
+            });
+
+            tmpX += colW;
+            nextY = Math.max(nextY, textY);
+        }
+
+        tmpX = 0;
+        for (let j = 0; j < cols; ++j) {
+            if (j == 0) {
+                renderLine(halfLineWidth, tmpY, halfLineWidth, nextY, lineWidth);
+            }
+
+            const colW = widths[j];
+            tmpX += colW - halfLineWidth;
+
+            renderLine(tmpX, tmpY, tmpX, nextY, lineWidth);
+        }
+
+        renderLine(0, nextY, maxW, nextY, lineWidth);
+
+        tmpX = 0;
+        tmpY = nextY;
+    }
+
+    updateHeight && setCurrentHeight(tmpY + (lineWidth * 2));
 }
 
 /* Draw mode helpers */
@@ -363,6 +456,63 @@ function moveDraw(x, y) {
         lastMouse.x = mouse.x;
         lastMouse.y = mouse.y;
     }
+}
+
+/* Table helpers */
+
+function createTable() {
+    tableColumns = parseInt(tableColumnBox.value);
+    if (isNaN(tableColumns)) {
+        tableColumns = 2;
+    }
+
+    if (tableColumns < 1 || tableColumns > 10) {
+        return;
+    }
+
+    tableColumnWidths.innerHTML = '';
+    tableRows.innerHTML = '';
+
+    for (let i = 0; i < tableColumns; ++i) {
+        const colWidthBox = ce('input');
+        colWidthBox.type = 'text';
+        colWidthBox.value = Math.floor(maxW / tableColumns);
+        tableColumnWidths.appendChild(colWidthBox);
+    }
+
+    addRow(tableColumns);
+    tableRowBtn.classList.remove('hide');
+    tableEndBtn.classList.remove('hide');
+}
+
+function addRow(cols) {
+    if (isNaN(cols)) {
+        cols = 2;
+    }
+
+    if (cols < 1 || cols > 10) {
+        return;
+    }
+
+    const row = ce('div');
+    row.classList.add('row');
+
+    for (let i = 0; i < cols; ++i) {
+        const rowColBox = ce('input');
+        rowColBox.type = 'text';
+        row.appendChild(rowColBox);
+    }
+
+    const deleteRowBtn = ce('div');
+    deleteRowBtn.classList.add('deleteRow');
+    deleteRowBtn.innerText = '×';
+
+    deleteRowBtn.onclick = () => {
+        tableRows.removeChild(row);
+    };
+
+    row.appendChild(deleteRowBtn);
+    tableRows.appendChild(row);
 }
 
 /* Canvas primary actions */
@@ -486,6 +636,33 @@ function disableDraw() {
     drawStartBtn.classList.remove('hide');
 }
 
+function addTable() {
+    const widths = [];
+    const widthsInputs = $$('#tableColumnWidths input');
+    for (const widthInput of widthsInputs) {
+        let colW = parseInt(widthInput.value);
+        if (isNaN(colW)) {
+            colW = 0;
+        }
+
+        widths.push(colW);
+    }
+
+    let rows = [];
+    const rowsElements = $$('#tableRows .row');
+    for (const row of rowsElements) {
+        const values = [];
+        const valuesInputs = $$('input', row);
+        for (const valueInput of valuesInputs) {
+            values.push(valueInput.value);
+        }
+        rows.push(values);
+    }
+
+    renderTable(rows, widths);
+    createTable();
+}
+
 /* Section handlers */
 
 function toggleSection(button) {
@@ -505,6 +682,9 @@ function addHandlers() {
     imageBtn.onclick = () => addImage();
     drawStartBtn.onclick = () => enableDraw();
     drawEndBtn.onclick = () => disableDraw();
+    tableStartBtn.onclick = () => createTable();
+    tableRowBtn.onclick = () => addRow(tableColumns);
+    tableEndBtn.onclick = () => addTable();
 
     const sectionButtons = $$('.section-btn');
     for (const button of sectionButtons) {

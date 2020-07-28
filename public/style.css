@@ -126,7 +126,8 @@ html, body {
 
 #sizeBox,
 #marginBox,
-#brushBox {
+#brushBox,
+#tableColumnBox {
     width: 60px;
 }
 
@@ -152,6 +153,35 @@ html, body {
 
 .controls .main > * {
     margin-right: 8px;
+}
+
+.tableColumns p {
+    align-self: center;
+    margin: 0 0 0 4px;
+    padding: 0;
+    font-size: 14px;
+}
+
+#tableColumnWidths input {
+    border: 0;
+    border-bottom: 1px solid rgba(0,0,0,.2);
+    background: none;
+    color: #999;
+    font-size: 11px;
+    text-align: center;
+}
+
+#tableColumnWidths input,
+#tableRows input {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.deleteRow {
+    color: red;
+    font-weight: bold;
+    align-self: center;
+    cursor: pointer;
 }
 
 @media screen and (max-width: 767px) {
