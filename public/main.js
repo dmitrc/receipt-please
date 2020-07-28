@@ -35,9 +35,12 @@ const dithAlgo = $('#dithAlgo');
 const imageBtn = $('#imageBtn');
 const drawStartBtn = $('#drawStartBtn');
 const drawEndBtn = $('#drawEndBtn');
-const brushBox = $('#brushBox');
 const lineBox = $('#lineBox');
 const lineBtn = $('#lineBtn');
+const wrapCharBox = $('#wrapCharBox');
+const textMarginBox = $('#textMarginBox');
+const iconBox = $('#iconBox');
+const lineHeightBox = $('#lineHeightBox');
 const tableColumnBox = $('#tableColumnBox');
 const tableStartBtn = $('#tableStartBtn');
 const tableColumnWidths = $('#tableColumnWidths');
@@ -281,6 +284,7 @@ function renderListItem(text, settings) {
     const useSpace = def(settings.useSpace, true);
     const updateHeight = def(settings.updateHeight, true);
     const lineWidth = def(settings.lineWidth, 4);
+    const marginWidth = def(settings.marginWidth, 4);
 
     const h1 = renderText('☐', {
         fontName: 'Arial',
@@ -289,9 +293,11 @@ function renderListItem(text, settings) {
         updateHeight: false
     });
 
+    const w1 = iconSize + marginWidth;
+
     const h2 = renderText(text, { 
-        x: 40,
-        w: maxW - 40,
+        x: w1,
+        w: maxW - w1,
         fontName: fontName,
         fontSize: fontSize,
         lineHeightRatio: lineHeightRatio,
@@ -301,10 +307,13 @@ function renderListItem(text, settings) {
 
     let newH = Math.max(h1, h2);
 
+    const halfLineWidth = Math.ceil(lineWidth / 2);
+    renderLine(0, newH + halfLineWidth, maxW, newH + halfLineWidth);
+
     ctx.fillStyle = 'black';
     ctx.fillRect(0, newH, maxW, lineWidth);
 
-    newH += lineWidth * 2;
+    newH += lineWidth + marginWidth;
     updateHeight && setCurrentHeight(newH);
     return newH;
 }
@@ -433,7 +442,7 @@ function moveDraw(x, y) {
     mouse.y = parseInt(y - c.y);
 
     if (isDrawingMode && isDrawing) {
-        let lineWidth = parseInt(brushBox.value);
+        let lineWidth = parseInt(lineBox.value);
         if (isNaN(lineWidth)) {
             lineWidth = 2;
         }
@@ -592,18 +601,23 @@ function addText() {
     if (text) {
         const fontSetting = fontBox.value || undefined;
         const sizeSetting = parseInt(sizeBox.value);
+        const lineHeightSetting = parseFloat(lineHeightBox.value);
+        const wrapSetting = wrapCharBox.checked;
         
-        if (isNaN(sizeSetting)) {
-            sizeSetting = undefined;
-        }
+        const settings = {
+            fontName: fontSetting, 
+            fontSize: sizeSetting,
+            lineHeightRatio: lineHeightSetting,
+            useSpace: !wrapSetting
+        };
 
         if (dithTextBox.checked)
         {
-            renderDitheredText(text, { fontName: fontSetting, fontSize: sizeSetting });
+            renderDitheredText(text, settings);
         }
         else
         {
-            renderText(text, { fontName: fontSetting, fontSize: sizeSetting });
+            renderText(text, settings);
         }
 
         textBox.value = '';
@@ -682,7 +696,22 @@ function addTable() {
         rows.push(values);
     }
 
-    renderTable(rows, widths);
+    const fontSetting = fontBox.value || undefined;
+    const sizeSetting = parseInt(sizeBox.value);
+    const lineSetting = parseInt(lineBox.value);
+    const marginSetting = parseInt(textMarginBox.value);
+    const lineHeightSetting = parseFloat(lineHeightBox.value);
+    const wrapSetting = wrapCharBox.checked;
+
+    renderTable(rows, widths, {
+        fontName: fontSetting,
+        fontSize: sizeSetting,
+        lineWidth: lineSetting,
+        marginWidth: marginSetting,
+        lineHeightRatio: lineHeightSetting,
+        useSpace: !wrapSetting
+    });
+
     createTable();
 }
 
@@ -694,8 +723,26 @@ function addList() {
         rows.push(rowBox.value);
     }
 
-    renderList(rows);
+    const fontSetting = fontBox.value || undefined;
+    const sizeSetting = parseInt(sizeBox.value);
+    const lineSetting = parseInt(lineBox.value);
+    const iconSetting = parseInt(iconBox.value);
+    const marginSetting = parseInt(textMarginBox.value);
+    const lineHeightSetting = parseFloat(lineHeightBox.value);
+    const wrapSetting = wrapCharBox.checked;
+
+    renderList(rows, {
+        fontName: fontSetting,
+        fontSize: sizeSetting,
+        lineWidth: lineSetting,
+        iconSize: iconSetting,
+        marginWidth: marginSetting,
+        lineHeightRatio: lineHeightSetting,
+        useSpace: !wrapSetting
+    });
+
     listRows.innerHTML = '';
+    addListRow();
 }
 
 /* Section handlers */
@@ -739,6 +786,7 @@ function addHandlers() {
     }
     
     canvas.onmouseup = () => endDraw();
+    canvas.onmouseout = () => endDraw();
     canvas.ontouchend = () => endDraw();
     canvas.ontouchcancel = () => endDraw();
     

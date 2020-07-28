@@ -17,15 +17,64 @@
                     <div id="clearBtn" class="btn red">Clear</div>
                 </div>
 
+                <div class="section settings">
+                    <div class="btn section-btn teal">Settings</div>
+                    <div class="section-content">
+                        <p>Text settings:</p>
+                        <div class="row">
+                            <input id="fontBox" type="text" value="Arial" />
+                            <input id="sizeBox" type="text" value="28" />
+                            <input id="lineHeightBox" type="text" value="1.2" />
+                            <div class="checkboxes">
+                                <div class="row mb4">
+                                    <input id="dithTextBox" type="checkbox" />
+                                    <span>Text dithering</span>
+                                </div>
+                                <div class="row">
+                                    <input id="wrapCharBox" type="checkbox" />
+                                    <span>Wrap characters</span>
+                                </div>
+                            </div>
+                            
+                        </div>
+                        
+                        <div class="row">
+                            <div>
+                                <p>Line width:</p>
+                                <input id="lineBox" type="text" value="4" />
+                            </div>
+                            <div class="ml20">
+                                <p>Text margins:</p>
+                                <input id="textMarginBox" type="text" value="4" />
+                            </div>
+                            <div class="ml20">
+                                <p>List icon:</p>
+                                <input id="iconBox" type="text" value="32" />
+                            </div>
+                        </div>
+                        
+
+                        <p>Dithering algorithm:</p>
+                        <select id="dithAlgo">
+                            <option>FloydSteinberg</option>
+                            <option>FalseFloydSteinberg</option>
+                            <option>Stucki</option>
+                            <option>Atkinson</option>
+                            <option>Jarvis</option>
+                            <option>Burkes</option>
+                            <option>Sierra</option>
+                            <option>TwoSierra</option>
+                            <option>SierraLite</option>
+                        </select>
+
+
+                    </div>
+                </div>
+
                 <div class="section">
                     <div class="btn section-btn blue">Text</div>
                     <div class="section-content">
                         <textarea id="textBox"></textarea>
-                        <div class="row">
-                            <input id="fontBox" type="text" value="Arial" />
-                            <input id="sizeBox" type="text" value="28" />
-                            <input id="dithTextBox" type="checkbox" />
-                        </div>
                         <div id="textBtn" class="btn purple action mb8">Add text</div>
                     </div>
                 </div>
@@ -42,17 +91,6 @@
                     <div class="btn section-btn blue">Image</div>
                     <div class="section-content">
                         <input id="imageBox" type="file" />
-                        <select id="dithAlgo">
-                            <option>FloydSteinberg</option>
-                            <option>FalseFloydSteinberg</option>
-                            <option>Stucki</option>
-                            <option>Atkinson</option>
-                            <option>Jarvis</option>
-                            <option>Burkes</option>
-                            <option>Sierra</option>
-                            <option>TwoSierra</option>
-                            <option>SierraLite</option>
-                        </select>
                         <div id="imageBtn" class="btn purple action">Add image</div>
                     </div>
                 </div>
@@ -60,7 +98,6 @@
                 <div class="section">
                     <div class="btn section-btn blue">Drawing</div>
                     <div class="section-content">
-                        <input id="brushBox" type="text" value="2" />
                         <div id="drawStartBtn" class="btn purple action">Start drawing</div>
                         <div id="drawEndBtn" class="btn yellow action hide">Stop drawing</div>
                     </div>
@@ -69,7 +106,6 @@
                 <div class="section">
                     <div class="btn section-btn blue">Line</div>
                     <div class="section-content">
-                        <input id="lineBox" type="text" value="2" />
                         <div id="lineBtn" class="btn purple action">Add line</div>
                     </div>
                 </div>

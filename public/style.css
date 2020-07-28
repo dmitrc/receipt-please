@@ -20,7 +20,7 @@ html, body {
 .pane {
     display: flex;
     flex-flow: column;
-    flex-grow: 1;
+    width: 50%;
     align-items: center;
 }
 
@@ -67,6 +67,23 @@ html, body {
     display: flex;
     flex-flow: row;
 }
+
+.ml4 {
+    margin: 0 0 0 4px;
+}
+
+.ml8 {
+    margin: 0 0 0 8px;
+}
+
+.ml20 {
+    margin: 0 0 0 20px;
+}
+
+.mb4 {
+    margin: 0 0 4px 0;
+}
+
 
 .mb8 {
     margin: 0 0 8px 0;
@@ -120,6 +137,10 @@ html, body {
     display: block;
 }
 
+.checkboxes input {
+    margin: 0 8px 0 0;
+}
+
 #fontBox {
     width: 120px;
 }
@@ -127,7 +148,11 @@ html, body {
 #sizeBox,
 #marginBox,
 #brushBox,
-#tableColumnBox {
+#tableColumnBox,
+#lineBox,
+#textMarginBox,
+#lineHeightBox,
+#iconBox {
     width: 60px;
 }
 
@@ -190,6 +215,10 @@ html, body {
         display: block;
     }
 
+    .pane {
+        width: 100%;
+    }
+
     .preview {
         height: auto;
         margin-left: 0;
@@ -232,4 +261,19 @@ html, body {
 #printBtn,
 #clearBtn {
     flex-grow: 1;
+}
+
+.settings p {
+    margin: 4px 0;
+    padding: 0;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.settings span {
+    font-size: 12px;
+}
+
+.settings .row {
+    align-items: center;
 }
