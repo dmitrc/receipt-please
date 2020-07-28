@@ -104,12 +104,14 @@ function renderText(text, settings) {
     const updateHeight = def(settings.updateHeight, true)
 
     ctx.font = `${fontSize}px ${fontName}`;
-    ctx.textBaseline = 'top';
+    ctx.textBaseline = 'middle';
     ctx.fillStyle = 'black';
     
-    const lineHeight = Math.ceil(fontSize * lineHeightRatio);
+    const lineHeight = fontSize * lineHeightRatio;
     const paragraphs = text.split('\n');
     let line = '';
+
+    y += lineHeight / 2;
 
     for (let i = 0; i < paragraphs.length; i++) {
 	    const breakChar = useSpace ? ' ' : '';
@@ -138,6 +140,8 @@ function renderText(text, settings) {
         line = '';
     }
 
+    y -= lineHeight / 2;
+
     updateHeight && setCurrentHeight(y);
     return y;
 }
@@ -146,8 +150,8 @@ function renderText(text, settings) {
 function renderDitheredText(text, settings) {
     settings = settings || {};
 
+    let y = def(settings.y, curY);
     const x = def(settings.x, 0);
-    const y = def(settings.y, curY);
     const w = def(settings.w, maxW);
     const fontName = def(settings.fontName, 'Arial');
     const fontSize = def(settings.fontSize, 28);
@@ -167,10 +171,11 @@ function renderDitheredText(text, settings) {
     textCtx.textBaseline = 'middle';
     textCtx.fillStyle = 'black';
     
-    const lineHeight = Math.ceil(fontSize * lineHeightRatio);
+    const lineHeight = fontSize * lineHeightRatio;
     const paragraphs = text.split('\n');
     let line = '';
-    let deltaH = Math.ceil(lineHeight / 2);
+
+    let deltaH = lineHeight / 2;
 
     for (let i = 0; i < paragraphs.length; i++) {
 	    const breakChar = useSpace ? ' ' : '';
@@ -199,6 +204,8 @@ function renderDitheredText(text, settings) {
         line = '';
     }
 
+    deltaH -= lineHeight / 2;
+
     const trimmedText = textCtx.getImageData(0, 0, w, deltaH);
     textCanvas.width = w;
     textCanvas.height = deltaH;
@@ -207,7 +214,9 @@ function renderDitheredText(text, settings) {
     const ditheredText = ditherImage(textCanvas);
     ctx.drawImage(ditheredText, x, y, w, deltaH);
 
-    updateHeight && setCurrentHeight(y + deltaH);
+    y += deltaH;
+
+    updateHeight && setCurrentHeight(y);
     return y;
 }
 
@@ -307,8 +316,7 @@ function renderListItem(text, settings) {
 
     let newH = Math.max(h1, h2);
 
-    const halfLineWidth = Math.ceil(lineWidth / 2);
-    renderLine(0, newH + halfLineWidth, maxW, newH + halfLineWidth);
+    renderLine(0, newH, maxW, lineWidth);
 
     ctx.fillStyle = 'black';
     ctx.fillRect(0, newH, maxW, lineWidth);
@@ -324,15 +332,9 @@ function renderList(list, settings) {
     }
 }
 
-function renderLine(fromX, fromY, toX, toY, w) {
-    ctx.lineWidth = w;
-    ctx.strokeStyle = 'black';
-
-    ctx.beginPath();
-    ctx.moveTo(fromX, fromY);
-    ctx.lineTo(toX, toY);
-    ctx.closePath();
-    ctx.stroke();
+function renderLine(x, y, w, h) {
+    ctx.fillStyle = 'black';
+    ctx.fillRect(x, y, w, h);
 }
 
 function renderTable(rows, widths, settings) {
@@ -351,33 +353,31 @@ function renderTable(rows, widths, settings) {
     const lineWidth = def(settings.lineWidth, 4);
     const marginWidth = def(settings.marginWidth, 4);
 
-    ctx.lineWidth = lineWidth;
-    ctx.strokeStyle = 'black';
-
-    const halfLineWidth = Math.ceil(lineWidth / 2);
-
     let tmpX = 0;
     let tmpY = y;
     let nextY = y;
 
     for (let i = 0; i < rows.length; ++i) {
-        if (i == 0) {
-            renderLine(0, tmpY + halfLineWidth, maxW, tmpY + halfLineWidth, lineWidth);
+        const isFirstRow = i == 0;
+        if (isFirstRow) {
+            renderLine(0, tmpY, maxW, lineWidth);
+            tmpY += lineWidth;
         }
 
         const cols = rows[i].length;
-        const colMarginW = marginWidth * 2;
 
         for (let j = 0; j < cols; ++j) {
+            const isFirstColumn = j == 0;
             const colW = widths[j];
-            const colLineW = Math.ceil(lineWidth * ((j == 0 || j == cols.length - 1) ? 2 : 1)); 
-            const colInternalW = colW - colLineW - colMarginW;
+            const colOffsetX = (isFirstColumn ? lineWidth : 0) + marginWidth;
+            const colRealW = colW - ((isFirstColumn ? 2 : 1) * lineWidth);
+            const colTextW = colRealW - (2 * marginWidth);
 
             const text = rows[i][j];
             const textY = renderText(text, {
-                x: tmpX + Math.ceil((colW - colInternalW) / 2),
+                x: tmpX + colOffsetX,
                 y: tmpY,
-                w: colInternalW,
+                w: colTextW,
                 fontName: fontName,
                 fontSize: fontSize,
                 lineHeightRatio : lineHeightRatio,
@@ -391,23 +391,25 @@ function renderTable(rows, widths, settings) {
 
         tmpX = 0;
         for (let j = 0; j < cols; ++j) {
-            if (j == 0) {
-                renderLine(halfLineWidth, tmpY, halfLineWidth, nextY, lineWidth);
+            const isFirstColumn = j == 0;
+            if (isFirstColumn)  {
+                renderLine(0, tmpY, lineWidth, nextY - tmpY);
             }
 
             const colW = widths[j];
-            tmpX += colW - halfLineWidth;
+            tmpX += colW;
 
-            renderLine(tmpX, tmpY, tmpX, nextY, lineWidth);
+            renderLine(tmpX - lineWidth, tmpY, lineWidth, nextY - tmpY);
         }
 
-        renderLine(0, nextY, maxW, nextY, lineWidth);
+        renderLine(0, nextY, maxW, lineWidth);
+        nextY += lineWidth;
 
         tmpX = 0;
         tmpY = nextY;
     }
 
-    updateHeight && setCurrentHeight(tmpY + (lineWidth * 2));
+    updateHeight && setCurrentHeight(tmpY + lineWidth);
 }
 
 /* Draw mode helpers */
@@ -496,7 +498,7 @@ function createTable() {
     for (let i = 0; i < tableColumns; ++i) {
         const colWidthBox = ce('input');
         colWidthBox.type = 'text';
-        colWidthBox.value = Math.floor(maxW / tableColumns);
+        colWidthBox.value = Math.round((maxW / tableColumns) * 100) / 100;
         tableColumnWidths.appendChild(colWidthBox);
     }
 
@@ -667,9 +669,7 @@ function addLine() {
         lineWidth = 2;
     }
 
-    const halfLineWidth = Math.ceil(lineWidth / 2);
-
-    renderLine(0, curY + halfLineWidth, maxW, curY + halfLineWidth, lineWidth);
+    renderLine(0, curY, maxW, lineWidth);
     setCurrentHeight(curY + lineWidth);
 }
 
@@ -677,7 +677,7 @@ function addTable() {
     const widths = [];
     const widthsInputs = $$('#tableColumnWidths input');
     for (const widthInput of widthsInputs) {
-        let colW = parseInt(widthInput.value);
+        let colW = parseFloat(widthInput.value);
         if (isNaN(colW)) {
             colW = 0;
         }
