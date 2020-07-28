@@ -247,7 +247,7 @@ function renderImage(image, settings) {
 
     const x = def(settings.x, 0);
     const y = def(settings.y, curY);
-    const updateHeight = def(updateHeight, true);
+    const updateHeight = def(settings.updateHeight, true);
 
     const w = image.width;
     const h = image.height;
@@ -749,6 +749,7 @@ function addHandlers() {
     canvas.ontouchmove = (e) => {
         const touch = e.touches[0];
         moveDraw(touch.pageX, touch.pageY);
+        e.preventDefault();
     }
 }
 
