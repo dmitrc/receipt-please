@@ -50,10 +50,14 @@ const tableEndBtn = $('#tableEndBtn');
 const listRows = $('#listRows');
 const listRowBtn = $('#listRowBtn');
 const listEndBtn = $('#listEndBtn');
+const tableActions = $('#tableActions');
 
 const ctx = canvas.getContext('2d');
 canvas.width = maxW;
 canvas.height = maxH;
+
+ctx.fillStyle = 'white';
+ctx.fillRect(0, 0, maxW, maxH);
 
 /* Misc helpers */
 
@@ -353,18 +357,19 @@ function renderTable(rows, widths, settings) {
     const lineWidth = def(settings.lineWidth, 4);
     const marginWidth = def(settings.marginWidth, 4);
 
+    const cols = rows[0].length;
+    const fromY = y + lineWidth;
+
     let tmpX = 0;
-    let tmpY = y;
-    let nextY = y;
+    let tmpY = fromY;
+    let nextY = fromY;
 
     for (let i = 0; i < rows.length; ++i) {
         const isFirstRow = i == 0;
         if (isFirstRow) {
-            renderLine(0, tmpY, maxW, lineWidth);
+            renderLine(tmpX, tmpY, maxW, lineWidth);
             tmpY += lineWidth;
         }
-
-        const cols = rows[i].length;
 
         for (let j = 0; j < cols; ++j) {
             const isFirstColumn = j == 0;
@@ -390,23 +395,23 @@ function renderTable(rows, widths, settings) {
         }
 
         tmpX = 0;
-        for (let j = 0; j < cols; ++j) {
-            const isFirstColumn = j == 0;
-            if (isFirstColumn)  {
-                renderLine(0, tmpY, lineWidth, nextY - tmpY);
-            }
 
-            const colW = widths[j];
-            tmpX += colW;
+        renderLine(tmpX, nextY, maxW, lineWidth);
 
-            renderLine(tmpX - lineWidth, tmpY, lineWidth, nextY - tmpY);
+        nextY += lineWidth;
+        tmpY = nextY;
+    }
+
+    for (let j = 0; j < cols; ++j) {
+        const isFirstColumn = j == 0;
+        if (isFirstColumn)  {
+            renderLine(tmpX, fromY, lineWidth, tmpY - fromY);
         }
 
-        renderLine(0, nextY, maxW, lineWidth);
-        nextY += lineWidth;
+        const colW = widths[j];
+        tmpX += colW;
 
-        tmpX = 0;
-        tmpY = nextY;
+        renderLine(tmpX - lineWidth, fromY, lineWidth, tmpY - fromY);
     }
 
     updateHeight && setCurrentHeight(tmpY + lineWidth);
@@ -503,8 +508,7 @@ function createTable() {
     }
 
     addTableRow(tableColumns);
-    tableRowBtn.classList.remove('hide');
-    tableEndBtn.classList.remove('hide');
+    tableActions.classList.remove('hide');
 }
 
 function addTableRow(cols) {
@@ -585,7 +589,7 @@ function print(trimH = curH) {
 }
 
 function clear() {
-    ctx.fillStyle = '#fff';
+    ctx.fillStyle = 'white';
     if (curY < curH) {
         ctx.fillRect(0, curY, maxW, curH - curY);
         setCurrentHeight(curY, true);

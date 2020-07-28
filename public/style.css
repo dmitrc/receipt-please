@@ -162,13 +162,13 @@ html, body {
 
 #textBox {
     width: 100%;
-    max-width: 400px;
-    height: 100px;
+    height: 72px;
     font-size: 14px;
+    margin-bottom: 8px;
 }
 
 #imageBox {
-    margin: 8px 0;
+    margin: 0 0 12px 0;
 }
 
 #dithAlgo {
@@ -208,6 +208,7 @@ html, body {
     font-weight: bold;
     align-self: center;
     cursor: pointer;
+    width: 10px;
 }
 
 @media screen and (max-width: 767px) {
@@ -292,4 +293,12 @@ html, body {
 
 .section.expanded .section-btn::after {
     content: "-";
+}
+
+#tableColumnWidths {
+    margin-right: 10px;
+}
+
+#tableActions {
+    margin-right: 18px;
 }
