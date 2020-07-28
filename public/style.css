@@ -277,3 +277,19 @@ html, body {
 .settings .row {
     align-items: center;
 }
+
+.section-btn {
+    position: relative;
+}
+
+.section-btn::after {
+    content: "+";
+    position: absolute;
+    top: calc(50% - 9px);
+    right: 10px;
+    height: 18px;
+}
+
+.section.expanded .section-btn::after {
+    content: "-";
+}
