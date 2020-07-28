@@ -36,6 +36,8 @@ const imageBtn = $('#imageBtn');
 const drawStartBtn = $('#drawStartBtn');
 const drawEndBtn = $('#drawEndBtn');
 const brushBox = $('#brushBox');
+const lineBox = $('#lineBox');
+const lineBtn = $('#lineBtn');
 const tableColumnBox = $('#tableColumnBox');
 const tableStartBtn = $('#tableStartBtn');
 const tableColumnWidths = $('#tableColumnWidths');
@@ -636,6 +638,18 @@ function disableDraw() {
     drawStartBtn.classList.remove('hide');
 }
 
+function addLine() {
+    let lineWidth = parseInt(lineBox.value);
+    if (isNaN(lineWidth)) {
+        lineWidth = 2;
+    }
+
+    const halfLineWidth = Math.ceil(lineWidth / 2);
+    
+    renderLine(0, curY + halfLineWidth, maxW, curY + halfLineWidth, lineWidth);
+    setCurrentHeight(curY + lineWidth);
+}
+
 function addTable() {
     const widths = [];
     const widthsInputs = $$('#tableColumnWidths input');
@@ -682,6 +696,7 @@ function addHandlers() {
     imageBtn.onclick = () => addImage();
     drawStartBtn.onclick = () => enableDraw();
     drawEndBtn.onclick = () => disableDraw();
+    lineBtn.onclick = () => addLine();
     tableStartBtn.onclick = () => createTable();
     tableRowBtn.onclick = () => addRow(tableColumns);
     tableEndBtn.onclick = () => addTable();
