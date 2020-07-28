@@ -1,7 +1,8 @@
-const $ = s => document.querySelector(s);
-const $$ = s => document.querySelectorAll(s);
+const $ = (s, e) => (e || document).querySelector(s);
+const $$ = (s, e) => (e || document).querySelectorAll(s);
 const ce = e => document.createElement(e);
 
+const printEndpoint = 'http://raspberrypi:3000/print';
 const maxW = 384;
 const maxH = 5000;
 const cursorAllowance = 2;
@@ -23,6 +24,7 @@ const clearBtn = $('#clearBtn');
 const textBox = $('#textBox');
 const fontBox = $('#fontBox');
 const sizeBox = $('#sizeBox');
+const dithTextBox = $('#dithTextBox');
 const textBtn = $('#textBtn');
 const listBtn = $('#listBtn');
 const marginBox = $('#marginBox');
@@ -125,7 +127,76 @@ function renderText(text, settings) {
     return y;
 }
 
-function ditherImage(imageCanvas, imageCtx) {
+/* Beta. Use to render emoji. */
+function renderDitheredText(text, settings) {
+    settings = settings || {};
+
+    const x = def(settings.x, 0);
+    const y = def(settings.y, curY);
+    const w = def(settings.w, maxW);
+    const fontName = def(settings.fontName, 'Arial');
+    const fontSize = def(settings.fontSize, 28);
+    const lineHeightRatio = def(settings.lineHeightRatio, 1.3);
+    const useSpace = def(settings.useSpace, true);
+    const updateHeight = def(settings.updateHeight, true);
+
+    const textCanvas = ce('canvas');
+    textCanvas.width = w;
+    textCanvas.height = maxH;
+
+    const textCtx = textCanvas.getContext('2d');
+    textCtx.fillStyle = 'white';
+    textCtx.fillRect(0, 0, w, maxH);
+
+    textCtx.font = `${fontSize}px ${fontName}`;
+    textCtx.textBaseline = 'middle';
+    textCtx.fillStyle = 'black';
+    
+    const lineHeight = Math.ceil(fontSize * lineHeightRatio);
+    const paragraphs = text.split('\n');
+    let line = '';
+    let deltaH = Math.ceil(lineHeight / 2);
+
+    for (let i = 0; i < paragraphs.length; i++) {
+	    const breakChar = useSpace ? ' ' : '';
+        const words = paragraphs[i].split(breakChar);
+
+        for (let n = 0; n < words.length; n++)
+        {
+            const testLine = line + words[n] + breakChar;
+            const metrics = textCtx.measureText(testLine);
+            const testWidth = metrics.width;
+
+            if (testWidth > w && n > 0)
+            {
+                textCtx.fillText(line, x, deltaH);
+                line = words[n] + breakChar;
+                deltaH += lineHeight;
+            }
+            else
+            {
+                line = testLine;
+            }
+        }
+
+        textCtx.fillText(line, x, deltaH);
+        deltaH += lineHeight;
+        line = '';
+    }
+
+    const trimmedText = textCtx.getImageData(0, 0, w, deltaH);
+    textCanvas.width = w;
+    textCanvas.height = deltaH;
+    textCtx.putImageData(trimmedText, 0, 0);
+
+    const ditheredText = ditherImage(textCanvas);
+    ctx.drawImage(ditheredText, x, y, w, deltaH);
+
+    updateHeight && setCurrentHeight(y + deltaH);
+    return y;
+}
+
+function ditherImage(imageCanvas) {
     const opts = {
         colors: 2,
         method: 2,
@@ -142,6 +213,8 @@ function ditherImage(imageCanvas, imageCtx) {
         cacheFreq: 10,
         colorDist: 'euclidean'
     };
+
+    const imageCtx = imageCanvas.getContext('2d');
 
     const w = imageCanvas.width;
     const h = imageCanvas.height;
@@ -177,7 +250,7 @@ function renderImage(image, settings) {
     const imageCtx = imageCanvas.getContext('2d');
     imageCtx.drawImage(image, 0, 0, adjustedW, adjustedH);
 
-    const ditheredImage = ditherImage(imageCanvas, imageCtx);
+    const ditheredImage = ditherImage(imageCanvas);
     ctx.drawImage(ditheredImage, x, y);
 
     const newH = (y + adjustedH);
@@ -313,7 +386,7 @@ function print(trimH = curH) {
             body: formData
         };
 
-        fetch('/print', opts)
+        fetch(printEndpoint, opts)
             .then(res => console.log)
             .catch(err => console.error);
     });
@@ -343,7 +416,14 @@ function addText() {
             sizeSetting = undefined;
         }
 
-        renderText(text, { fontName: fontSetting, fontSize: sizeSetting });
+        if (dithTextBox.checked)
+        {
+            renderDitheredText(text, { fontName: fontSetting, fontSize: sizeSetting });
+        }
+        else
+        {
+            renderText(text, { fontName: fontSetting, fontSize: sizeSetting });
+        }
 
         textBox.value = '';
         textBox.focus();
