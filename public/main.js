@@ -44,6 +44,9 @@ const tableColumnWidths = $('#tableColumnWidths');
 const tableRows = $('#tableRows');
 const tableRowBtn = $('#tableRowBtn');
 const tableEndBtn = $('#tableEndBtn');
+const listRows = $('#listRows');
+const listRowBtn = $('#listRowBtn');
+const listEndBtn = $('#listEndBtn');
 
 const ctx = canvas.getContext('2d');
 canvas.width = maxW;
@@ -277,6 +280,7 @@ function renderListItem(text, settings) {
     const lineHeightRatio = def(settings.lineHeightRatio, 1.2);
     const useSpace = def(settings.useSpace, true);
     const updateHeight = def(settings.updateHeight, true);
+    const lineWidth = def(settings.lineWidth, 4);
 
     const h1 = renderText('☐', {
         fontName: 'Arial',
@@ -295,15 +299,20 @@ function renderListItem(text, settings) {
         updateHeight: false
     });
 
-    const newH = Math.max(h1, h2);
+    let newH = Math.max(h1, h2);
 
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-    ctx.fillRect(0, newH, maxW, 1);
     ctx.fillStyle = 'black';
+    ctx.fillRect(0, newH, maxW, lineWidth);
 
-    newH += 9;
+    newH += lineWidth * 2;
     updateHeight && setCurrentHeight(newH);
     return newH;
+}
+
+function renderList(list, settings) {
+    for (var text of list) {
+        renderListItem(text, settings);
+    }
 }
 
 function renderLine(fromX, fromY, toX, toY, w) {
@@ -330,8 +339,8 @@ function renderTable(rows, widths, settings) {
     const lineHeightRatio = def(settings.lineHeightRatio, 1.2);
     const useSpace = def(settings.useSpace, true);
     const updateHeight = def(settings.updateHeight, true);
-    const lineWidth = def(settings.lineWidth, 2);
-    const marginWidth = def(settings.marginWidth, 2);
+    const lineWidth = def(settings.lineWidth, 4);
+    const marginWidth = def(settings.marginWidth, 4);
 
     ctx.lineWidth = lineWidth;
     ctx.strokeStyle = 'black';
@@ -482,12 +491,12 @@ function createTable() {
         tableColumnWidths.appendChild(colWidthBox);
     }
 
-    addRow(tableColumns);
+    addTableRow(tableColumns);
     tableRowBtn.classList.remove('hide');
     tableEndBtn.classList.remove('hide');
 }
 
-function addRow(cols) {
+function addTableRow(cols) {
     if (isNaN(cols)) {
         cols = 2;
     }
@@ -515,6 +524,26 @@ function addRow(cols) {
 
     row.appendChild(deleteRowBtn);
     tableRows.appendChild(row);
+}
+
+function addListRow() {
+    const row = ce('div');
+    row.classList.add('row');
+
+    const rowBox = ce('input');
+    rowBox.type = 'text';
+    row.appendChild(rowBox);
+
+    const deleteRowBtn = ce('div');
+    deleteRowBtn.classList.add('deleteRow');
+    deleteRowBtn.innerText = '×';
+
+    deleteRowBtn.onclick = () => {
+        listRows.removeChild(row);
+    };
+
+    row.appendChild(deleteRowBtn);
+    listRows.appendChild(row);
 }
 
 /* Canvas primary actions */
@@ -582,26 +611,6 @@ function addText() {
     }
 }
 
-function addList() {
-    const text = textBox.value;
-    if (text) {
-        const fontSetting = fontBox.value || undefined;
-        const sizeSetting = parseInt(sizeBox.value);
-        
-        if (isNaN(sizeSetting)) {
-            sizeSetting = undefined;
-        }
-
-        items = text.split('\n');
-        for (const item of items) {
-            renderListItem(item, { fontName: fontSetting, fontSize: sizeSetting });
-        }
-
-        textBox.value = '';
-        textBox.focus();
-    }
-}
-
 function addMargin() {
     const marginSetting = parseInt(marginBox.value);
     if (!isNaN(marginSetting)) {
@@ -645,7 +654,7 @@ function addLine() {
     }
 
     const halfLineWidth = Math.ceil(lineWidth / 2);
-    
+
     renderLine(0, curY + halfLineWidth, maxW, curY + halfLineWidth, lineWidth);
     setCurrentHeight(curY + lineWidth);
 }
@@ -677,6 +686,18 @@ function addTable() {
     createTable();
 }
 
+function addList() {
+    let rows = [];
+    const rowsElements = $$('#listRows .row');
+    for (const row of rowsElements) {
+        const rowBox = $('input', row);
+        rows.push(rowBox.value);
+    }
+
+    renderList(rows);
+    listRows.innerHTML = '';
+}
+
 /* Section handlers */
 
 function toggleSection(button) {
@@ -698,8 +719,10 @@ function addHandlers() {
     drawEndBtn.onclick = () => disableDraw();
     lineBtn.onclick = () => addLine();
     tableStartBtn.onclick = () => createTable();
-    tableRowBtn.onclick = () => addRow(tableColumns);
+    tableRowBtn.onclick = () => addTableRow(tableColumns);
     tableEndBtn.onclick = () => addTable();
+    listRowBtn.onclick = () => addListRow();
+    listEndBtn.onclick = () => addList();
 
     const sectionButtons = $$('.section-btn');
     for (const button of sectionButtons) {

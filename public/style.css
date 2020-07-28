@@ -172,7 +172,8 @@ html, body {
 }
 
 #tableColumnWidths input,
-#tableRows input {
+#tableRows input,
+#listRows input {
     flex-grow: 1;
     min-width: 0;
 }
