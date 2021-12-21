@@ -25,12 +25,32 @@ git clone https://github.com/dmitryfd/receipt-please.git && cd receipt-please
 
 - Install the dependencies
 ```
-npm i
+sudo apt-get install libudev-dev
+```
+```
+CXXFLAGS="--std=c++14" npm install
 ```
 
 - Modify the config as needed
 ```
 vim config.js
+```
+
+- Create a writeable `uploads` directory
+```
+mkdir uploads
+chmod 777 uploads
+```
+
+- Ensure permissions for the USB device
+```
+echo "SUBSYSTEM==\"usb\", ATTR{idVendor}==\"0416\", ATTR{idProduct}==\"5011\", MODE=\"0666\"" | sudo tee /etc/udev/rules.d/40-receiptplease.rules > /dev/null
+```
+```
+sudo udevadm control --reload-rules
+```
+```
+sudo udevadm trigger
 ```
 
 - Run
