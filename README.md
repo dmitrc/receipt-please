@@ -18,6 +18,12 @@ You probably noticed how difficult can it be to interface with it and print anyt
 
 ## Getting started
 
+- Install Node.js (ARM6 unofficial build for RPi0W)
+```
+curl -O https://unofficial-builds.nodejs.org/download/release/v${NODE_VER}/node-v${NODE_VER}-linux-armv6l.tar.xz
+tar -xf node-v${NODE_VER}-linux-armv6l.tar.xz
+```
+
 - Clone the repository
 ```
 git clone https://github.com/dmitryfd/receipt-please.git && cd receipt-please
@@ -60,7 +66,7 @@ node index.js
 
 ## What is your hardware setup?
 
-* Raspberry Pi Zero W running (unofficial) Node v12.8.3 (LTS)
+* Raspberry Pi Zero W running (unofficial) Node LTS
   - Connected to Internet via WiFi
 
 * ZJ-5802 printer connected to Pi via USB
