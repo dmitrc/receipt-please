@@ -2,7 +2,7 @@ const $ = (s, e) => (e || document).querySelector(s);
 const $$ = (s, e) => (e || document).querySelectorAll(s);
 const ce = e => document.createElement(e);
 
-const textEndpoint = 'http://localhost:3000/text';
+const textEndpoint = 'http://raspberrypi:3000/text';
 const maxW = 384;
 const maxH = 5000;
 const cursorAllowance = 2;
