@@ -6,6 +6,9 @@ const textEndpoint = 'http://raspberrypi:3000/text';
 
 const printBtn = $('#printBtn');
 const textBox = $('#textBox');
+const altFontBox = $('#altFontBox');
+const doubleWidthBox = $('#doubleWidthBox');
+const doubleHeightBox = $('#doubleHeightBox');
 
 function print() {
     const text = textBox.value;
@@ -18,7 +21,12 @@ function print() {
         headers: {
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({ text })
+        body: JSON.stringify({ 
+            text,
+            altFont: altFontBox.value,
+            doubleWidth: doubleWidthBox.value,
+            doubleHeight: doubleHeightBox.value
+        })
     };
 
     fetch(textEndpoint, opts)
@@ -26,10 +34,22 @@ function print() {
         .catch(err => console.error);
 }
 
+/* Section handlers */
+
+function toggleSection(button) {
+    const section = button.parentElement;
+    section.classList.toggle('expanded');
+}
+
 /* Setup */
 
 function addHandlers() {
     printBtn.onclick = () => print();
+
+    const sectionButtons = $$('.section-btn');
+    for (const button of sectionButtons) {
+        button.onclick = () => toggleSection(button);
+    }
 }
 
 addHandlers();

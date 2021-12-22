@@ -60,13 +60,13 @@ const printImage = (printer, url) => {
 /**
  * 
  * @param {escpos.Printer} printer 
- * @param {string} text 
- * @param {string} encoding 
  * @returns 
  */
-const printText = async (printer, text, encoding) => {
+const printText = (printer, args) => {
     try {
-        await printer.text(text, encoding);
+        printer.font(altFont ? "B" : "A");
+        printer.size(args.doubleWidth ? 2 : 1, args,doubleHeight ? 2 : 1);
+        printer.text(args.text, args.encoding);
         printer.cut().close();
     }
     catch (err) {
@@ -133,7 +133,7 @@ app.post('/text', async (req, res) => {
 
     try {
         const printer = await initPrinter();
-        await printText(printer, req.body.text, req.body.encoding);
+        printText(printer, req.body.text, req.body.encoding);
 
         log('Completed print');
         res.send('OK');
