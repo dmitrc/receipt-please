@@ -133,7 +133,7 @@ app.post('/text', async (req, res) => {
 
     try {
         const printer = await initPrinter();
-        printText(printer, req.body.text, req.body.encoding);
+        printText(printer, req.body);
 
         log('Completed print');
         res.send('OK');
