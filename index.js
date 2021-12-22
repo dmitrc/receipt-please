@@ -64,20 +64,15 @@ const printImage = (printer, url) => {
  * @param {string} encoding 
  * @returns 
  */
-const printText = (printer, text, encoding) => {
-    return new Promise((resolve, reject) => {
-        escpos.Image.load(url, async (image) => {
-            try {
-                await printer.text(text, encoding);
-                printer.cut().close();
-                resolve();
-            }
-            catch (err) {
-                logError(err);
-                reject(err);
-            }
-        });
-    });
+const printText = async (printer, text, encoding) => {
+    try {
+        await printer.text(text, encoding);
+        printer.cut().close();
+    }
+    catch (err) {
+        logError(err);
+        throw err;
+    }
 }
 
 const app = express();
