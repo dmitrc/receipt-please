@@ -22,10 +22,7 @@ function print() {
             "Content-Type": "application/json"
         },
         body: JSON.stringify({ 
-            text,
-            altFont: altFontBox.checked,
-            doubleWidth: doubleWidthBox.checked,
-            doubleHeight: doubleHeightBox.checked
+            text
         })
     };
 
