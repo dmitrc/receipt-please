@@ -4,6 +4,7 @@ const escpos = require('escpos');
 escpos.USB = require('escpos-usb');
 
 const express = require('express');
+const bodyParser = require('body-parser');
 const compression = require('compression');
 const cors = require('cors');
 const multer = require('multer');
@@ -56,7 +57,53 @@ const printImage = (printer, url) => {
     });
 }
 
-const handlePrint = async (req, res) => {
+/**
+ * 
+ * @param {escpos.Printer} printer 
+ * @param {string} text 
+ * @param {string} encoding 
+ * @returns 
+ */
+const printText = (printer, text, encoding) => {
+    return new Promise((resolve, reject) => {
+        escpos.Image.load(url, async (image) => {
+            try {
+                await printer.text(text, encoding);
+                printer.cut().close();
+                resolve();
+            }
+            catch (err) {
+                logError(err);
+                reject(err);
+            }
+        });
+    });
+}
+
+const app = express();
+
+app.use(compression());
+app.use(cors());
+app.use(express.static(__dirname + '/public'));
+app.use(bodyParser.json());
+
+const upload = multer({ 
+    fileFilter: (req, file, cb) => {
+        cb(null, file && file.mimetype == "image/png");
+    },
+    storage: multer.diskStorage({
+        destination: (req, file, cb) => {
+            cb(null, __dirname + '/uploads');
+        },
+        filename: (req, file, cb) => {
+            const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+            cb(null, uniqueSuffix + '.png');
+        }
+    })
+});
+
+
+app.post('/print', upload.single('blob'), async (req, res) => {
     if (!req.file) {
         logError('No blob attached');
         res.status(400).send('No blob attached');
@@ -80,31 +127,27 @@ const handlePrint = async (req, res) => {
         logError(err);
         res.status(500).send(err);
     }
-};
-
-const app = express();
-
-app.use(compression());
-app.use(cors());
-app.use(express.static(__dirname + '/public'));
-
-const upload = multer({ 
-    fileFilter: (req, file, cb) => {
-        cb(null, file && file.mimetype == "image/png");
-    },
-    storage: multer.diskStorage({
-        destination: (req, file, cb) => {
-            cb(null, __dirname + '/uploads');
-        },
-        filename: (req, file, cb) => {
-            const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-            cb(null, uniqueSuffix + '.png');
-        }
-    })
 });
 
+app.post('/text', async (req, res) => {
+    if (!req?.body?.text) {
+        logError('No text attached');
+        res.status(400).send('No text attached');
+        return;
+    }
 
-app.post('/print', upload.single('blob'), handlePrint);
+    try {
+        const printer = await initPrinter();
+        await printText(printer, req.body.text, req.body.encoding);
+
+        log('Completed print');
+        res.send('OK');
+    }
+    catch (err) {
+        logError(err);
+        res.status(500).send(err);
+    }
+});
 
 app.listen(config.port, () => {
     log(`Listening at port ${config.port}...`);
