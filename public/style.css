@@ -167,6 +167,10 @@ html, body {
     margin-bottom: 8px;
 }
 
+#textBox.big {
+    height: 200px;
+}
+
 #imageBox {
     margin: 0 0 12px 0;
 }

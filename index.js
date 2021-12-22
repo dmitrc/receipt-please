@@ -125,7 +125,7 @@ app.post('/print', upload.single('blob'), async (req, res) => {
 });
 
 app.post('/text', async (req, res) => {
-    if (!req?.body?.text) {
+    if (!req.body?.text) {
         logError('No text attached');
         res.status(400).send('No text attached');
         return;
