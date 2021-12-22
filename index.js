@@ -64,6 +64,8 @@ const printImage = (printer, url) => {
  */
 const printText = (printer, args) => {
     try {
+        console.log(args);
+        
         printer.font(args.altFont ? "B" : "A");
         printer.size(args.doubleWidth ? 2 : 1, args.doubleHeight ? 2 : 1);
         printer.text(args.text, args.encoding);

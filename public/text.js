@@ -23,9 +23,9 @@ function print() {
         },
         body: JSON.stringify({ 
             text,
-            altFont: altFontBox.value,
-            doubleWidth: doubleWidthBox.value,
-            doubleHeight: doubleHeightBox.value
+            altFont: altFontBox.checked,
+            doubleWidth: doubleWidthBox.checked,
+            doubleHeight: doubleHeightBox.checked
         })
     };
 
